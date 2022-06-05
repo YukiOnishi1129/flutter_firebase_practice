@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_firevase_practice/time_line/time_line_page.dart';
+import 'package:flutter_firevase_practice/view/time_line/time_line_page.dart';
 
 void main() {
   runApp(const MyApp());
