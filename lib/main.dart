@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_firevase_practice/view/time_line/time_line_page.dart';
+import 'package:flutter_firevase_practice/view/screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -15,6 +15,6 @@ class MyApp extends StatelessWidget {
         theme: ThemeData(
           primarySwatch: Colors.blue,
         ),
-        home: const TimeLinePage());
+        home: const Screen());
   }
 }
