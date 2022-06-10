@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_firevase_practice/view/screen.dart';
+import 'package:flutter_firevase_practice/view/start_up/login_page.dart';
 
 void main() {
   runApp(const MyApp());
@@ -15,6 +15,6 @@ class MyApp extends StatelessWidget {
         theme: ThemeData(
           primarySwatch: Colors.blue,
         ),
-        home: const Screen());
+        home: LoginPage());
   }
 }
