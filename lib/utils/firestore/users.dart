@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_firevase_practice/utils/authentication.dart';
+import 'package:flutter_firevase_practice/utils/firestore/posts.dart';
 
 import '../../model/account.dart';
 
@@ -89,5 +90,10 @@ class UserFirestore {
       print('投稿ユーザーの情報取得エラー: $e');
       return null;
     }
+  }
+
+  static Future<dynamic> deleteUser(String accountId) async {
+    users.doc(accountId).delete();
+    PostFirestore.deletePosts(accountId);
   }
 }
