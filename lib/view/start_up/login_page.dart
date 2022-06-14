@@ -84,14 +84,19 @@ class _LoginPageState extends State<LoginPage> {
                   var result = await Authentication.emailSingIn(
                       email: emailController.text, pass: passController.text);
                   if (result is UserCredential) {
-                    var _result = await UserFirestore.getUser(result.user!.uid);
-                    if (_result == true) {
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const Screen(),
-                        ),
-                      );
+                    if (result.user!.emailVerified == true) {
+                      var _result =
+                          await UserFirestore.getUser(result.user!.uid);
+                      if (_result == true) {
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const Screen(),
+                          ),
+                        );
+                      }
+                    } else {
+                      print('メール認証できてません');
                     }
                   }
                 },

@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_firevase_practice/utils/authentication.dart';
 import 'package:flutter_firevase_practice/utils/firestore/users.dart';
 import 'package:flutter_firevase_practice/utils/function_utils.dart';
+import 'package:flutter_firevase_practice/view/start_up/check_email_page.dart';
 
 import '../../model/account.dart';
 import '../../utils/widget_utils.dart';
@@ -128,7 +129,14 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
                         );
                         var _result = await UserFirestore.setUser(newAccount);
                         if (_result == true) {
-                          Navigator.pop(context);
+                          result.user!.sendEmailVerification();
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => CheckEmailPage(
+                                    email: emailController.text,
+                                    pass: passController.text),
+                              ));
                         }
                       }
                     }
