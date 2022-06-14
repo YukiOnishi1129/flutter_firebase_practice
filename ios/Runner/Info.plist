@@ -51,5 +51,18 @@
 	<string>This is app requires to add file to your camera</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>This is app requires to add file to your photo library your microphone</string>
+	<key>CFBundleURLTypes</key>
+    <array>
+    	<dict>
+    		<key>CFBundleTypeRole</key>
+    		<string>Editor</string>
+    		<key>CFBundleURLSchemes</key>
+    		<array>
+    			<!-- TODO Replace this value: -->
+    			<!-- Copied from GoogleService-Info.plist key REVERSED_CLIENT_ID -->
+    			<string>com.googleusercontent.apps.895060873294-gaiu2fqfripg96koi2rreqg9oo3atp93</string>
+    		</array>
+    	</dict>
+    </array>
 </dict>
 </plist>
