@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_firevase_practice/utils/authentication.dart';
 import 'package:flutter_firevase_practice/utils/firestore/users.dart';
@@ -9,25 +8,41 @@ import 'package:flutter_firevase_practice/utils/function_utils.dart';
 import '../../model/account.dart';
 import '../../utils/widget_utils.dart';
 
-class CreateAccountPage extends StatefulWidget {
-  const CreateAccountPage({Key? key}) : super(key: key);
+class EditAccountPage extends StatefulWidget {
+  const EditAccountPage({Key? key}) : super(key: key);
 
   @override
-  State<CreateAccountPage> createState() => _CreateAccountPageState();
+  State<EditAccountPage> createState() => _EditAccountPageState();
 }
 
-class _CreateAccountPageState extends State<CreateAccountPage> {
+class _EditAccountPageState extends State<EditAccountPage> {
+  Account? myAccount = Authentication.myAccount!;
   TextEditingController nameController = TextEditingController();
   TextEditingController userIdController = TextEditingController();
   TextEditingController selfIntroductionController = TextEditingController();
-  TextEditingController emailController = TextEditingController();
-  TextEditingController passController = TextEditingController();
   File? image;
+
+  ImageProvider getImage() {
+    if (image == null) {
+      return NetworkImage('${myAccount?.imagePath}');
+    } else {
+      return FileImage(image!);
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    nameController = TextEditingController(text: myAccount?.name);
+    userIdController = TextEditingController(text: myAccount?.userId);
+    selfIntroductionController =
+        TextEditingController(text: myAccount?.selfIntroduction);
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: WidgetUtils.createAppBar('新規登録'),
+      appBar: WidgetUtils.createAppBar('プロフィール編集'),
       body: SingleChildScrollView(
         child: Container(
           width: double.infinity,
@@ -46,7 +61,7 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
                   }
                 },
                 child: CircleAvatar(
-                  foregroundImage: image == null ? null : FileImage(image!),
+                  foregroundImage: getImage(),
                   radius: 40,
                   child: Icon(Icons.add),
                 ),
@@ -81,27 +96,6 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
                   ),
                 ),
               ),
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 20.0),
-                child: Container(
-                  width: 300,
-                  child: TextField(
-                    controller: emailController,
-                    decoration: InputDecoration(
-                      hintText: 'メールアドレス',
-                    ),
-                  ),
-                ),
-              ),
-              Container(
-                width: 300,
-                child: TextField(
-                  controller: passController,
-                  decoration: InputDecoration(
-                    hintText: 'パスワード',
-                  ),
-                ),
-              ),
               SizedBox(
                 height: 50,
               ),
@@ -109,31 +103,31 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
                   onPressed: () async {
                     if (nameController.text.isNotEmpty &&
                         userIdController.text.isNotEmpty &&
-                        selfIntroductionController.text.isNotEmpty &&
-                        emailController.text.isNotEmpty &&
-                        passController.text.isNotEmpty &&
-                        image != null) {
-                      var result = await Authentication.singUp(
-                          email: emailController.text,
-                          pass: passController.text);
-                      if (result is UserCredential) {
-                        String imagePath = await FunctionUtils.uploadImage(
-                            result.user!.uid, image!);
-                        Account newAccount = Account(
-                          id: result.user!.uid,
-                          name: nameController.text,
-                          userId: userIdController.text,
-                          selfIntroduction: selfIntroductionController.text,
-                          imagePath: imagePath,
-                        );
-                        var _result = await UserFirestore.setUser(newAccount);
-                        if (_result == true) {
-                          Navigator.pop(context);
-                        }
+                        selfIntroductionController.text.isNotEmpty) {
+                      String? imagePath = '';
+                      if (image == null) {
+                        imagePath = myAccount!.imagePath;
+                      } else {
+                        var result = await FunctionUtils.uploadImage(
+                            myAccount!.id, image!);
+                        imagePath = result;
+                      }
+                      Account updateAccount = Account(
+                        id: myAccount!.id,
+                        name: nameController.text,
+                        userId: userIdController.text,
+                        selfIntroduction: selfIntroductionController.text,
+                        imagePath: imagePath,
+                      );
+                      Authentication.myAccount = updateAccount;
+                      var result =
+                          await UserFirestore.updateUser(updateAccount);
+                      if (result != null) {
+                        Navigator.pop(context, true);
                       }
                     }
                   },
-                  child: Text('アカウントを作成'))
+                  child: Text('更新'))
             ],
           ),
         ),

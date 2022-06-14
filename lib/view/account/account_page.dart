@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 
 import '../../model/account.dart';
 import '../../model/post.dart';
+import 'edit_account_page.dart';
 
 class AccountPage extends StatefulWidget {
   const AccountPage({Key? key}) : super(key: key);
@@ -74,7 +75,19 @@ class _AccountPageState extends State<AccountPage> {
                           ),
                           const SizedBox(height: 15),
                           OutlinedButton(
-                              onPressed: () {}, child: const Text('編集'))
+                              onPressed: () async {
+                                var result = await Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) =>
+                                            EditAccountPage()));
+                                if (result == true) {
+                                  setState(() {
+                                    myAccount = Authentication.myAccount!;
+                                  });
+                                }
+                              },
+                              child: const Text('編集'))
                         ],
                       ),
                       Text('${myAccount?.selfIntroduction}')
