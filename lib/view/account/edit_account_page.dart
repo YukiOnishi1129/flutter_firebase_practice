@@ -7,6 +7,7 @@ import 'package:flutter_firevase_practice/utils/function_utils.dart';
 
 import '../../model/account.dart';
 import '../../utils/widget_utils.dart';
+import '../start_up/login_page.dart';
 
 class EditAccountPage extends StatefulWidget {
   const EditAccountPage({Key? key}) : super(key: key);
@@ -100,34 +101,47 @@ class _EditAccountPageState extends State<EditAccountPage> {
                 height: 50,
               ),
               ElevatedButton(
-                  onPressed: () async {
-                    if (nameController.text.isNotEmpty &&
-                        userIdController.text.isNotEmpty &&
-                        selfIntroductionController.text.isNotEmpty) {
-                      String? imagePath = '';
-                      if (image == null) {
-                        imagePath = myAccount!.imagePath;
-                      } else {
-                        var result = await FunctionUtils.uploadImage(
-                            myAccount!.id, image!);
-                        imagePath = result;
-                      }
-                      Account updateAccount = Account(
-                        id: myAccount!.id,
-                        name: nameController.text,
-                        userId: userIdController.text,
-                        selfIntroduction: selfIntroductionController.text,
-                        imagePath: imagePath,
-                      );
-                      Authentication.myAccount = updateAccount;
-                      var result =
-                          await UserFirestore.updateUser(updateAccount);
-                      if (result != null) {
-                        Navigator.pop(context, true);
-                      }
+                onPressed: () async {
+                  if (nameController.text.isNotEmpty &&
+                      userIdController.text.isNotEmpty &&
+                      selfIntroductionController.text.isNotEmpty) {
+                    String? imagePath = '';
+                    if (image == null) {
+                      imagePath = myAccount!.imagePath;
+                    } else {
+                      var result = await FunctionUtils.uploadImage(
+                          myAccount!.id, image!);
+                      imagePath = result;
                     }
-                  },
-                  child: Text('更新'))
+                    Account updateAccount = Account(
+                      id: myAccount!.id,
+                      name: nameController.text,
+                      userId: userIdController.text,
+                      selfIntroduction: selfIntroductionController.text,
+                      imagePath: imagePath,
+                    );
+                    Authentication.myAccount = updateAccount;
+                    var result = await UserFirestore.updateUser(updateAccount);
+                    if (result != null) {
+                      Navigator.pop(context, true);
+                    }
+                  }
+                },
+                child: Text('更新'),
+              ),
+              SizedBox(height: 50),
+              ElevatedButton(
+                onPressed: () async {
+                  await Authentication.signOut();
+                  //popできる状況ならpopする
+                  while (Navigator.canPop(context)) {
+                    Navigator.pop(context);
+                  }
+                  Navigator.pushReplacement(context,
+                      MaterialPageRoute(builder: (context) => LoginPage()));
+                },
+                child: Text('ログアウト'),
+              ),
             ],
           ),
         ),
