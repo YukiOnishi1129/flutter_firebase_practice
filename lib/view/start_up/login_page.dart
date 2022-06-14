@@ -1,4 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_signin_button/flutter_signin_button.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_firevase_practice/utils/authentication.dart';
@@ -84,19 +85,43 @@ class _LoginPageState extends State<LoginPage> {
                   var result = await Authentication.emailSingIn(
                       email: emailController.text, pass: passController.text);
                   if (result is UserCredential) {
-                    var _result = await UserFirestore.getUser(result.user!.uid);
-                    if (_result == true) {
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const Screen(),
-                        ),
-                      );
+                    if (result.user!.emailVerified == true) {
+                      var _result =
+                          await UserFirestore.getUser(result.user!.uid);
+                      if (_result == true) {
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const Screen(),
+                          ),
+                        );
+                      }
+                    } else {
+                      print('メール認証できてません');
                     }
                   }
                 },
                 child: const Text('emailでログイン'),
               ),
+              SizedBox(
+                height: 50,
+              ),
+              SignInButton(Buttons.Google, onPressed: () async {
+                var result = await Authentication.signInWithGoogle();
+                if (result is UserCredential) {
+                  var result = await UserFirestore.getUser(
+                      Authentication.currentFirebaseUser!.uid);
+                  if (result == true) {
+                    Navigator.pushReplacement(context,
+                        MaterialPageRoute(builder: (context) => Screen()));
+                  } else {
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => CreateAccountPage()));
+                  }
+                }
+              })
             ],
           ),
         ),

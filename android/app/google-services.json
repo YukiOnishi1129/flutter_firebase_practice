@@ -14,6 +14,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "895060873294-antetsvs0f608a2rkor1d6sbn9nc6o5g.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.yuki.onishi.flutter_firevase_practice",
+            "certificate_hash": "2891d7eb3c0dffe2e75b9cb4735cebfcf443d822"
+          }
+        },
+        {
           "client_id": "895060873294-mf2l0bhe55b71jvn62o78ckm274gqnbg.apps.googleusercontent.com",
           "client_type": 3
         }
