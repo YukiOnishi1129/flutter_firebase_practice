@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_firevase_practice/utils/authentication.dart';
 import 'package:intl/intl.dart';
@@ -22,13 +23,13 @@ class _AccountPageState extends State<AccountPage> {
       id: '1',
       content: '初めまして',
       postAccountId: '1',
-      createdTime: DateTime.now(),
+      createdTime: Timestamp.now(),
     ),
     Post(
       id: '2',
       content: '初めまして2回目',
       postAccountId: '1',
-      createdTime: DateTime.now(),
+      createdTime: Timestamp.now(),
     )
   ];
 
@@ -162,8 +163,10 @@ class _AccountPageState extends State<AccountPage> {
                                           ),
                                         ],
                                       ),
-                                      Text(DateFormat('M/d/yy')
-                                          .format(postList[index].createdTime!))
+                                      Text(DateFormat('M/d/yy').format(
+                                          postList[index]
+                                              .createdTime!
+                                              .toDate()))
                                     ],
                                   ),
                                   Text(postList[index].content)
