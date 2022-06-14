@@ -1,7 +1,13 @@
 import 'dart:io';
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
+import 'package:flutter_firevase_practice/utils/authentication.dart';
+import 'package:flutter_firevase_practice/utils/firestore/users.dart';
+import 'package:flutter_firevase_practice/utils/function_utils.dart';
+
+import '../../model/account.dart';
+import '../../utils/widget_utils.dart';
 
 class CreateAccountPage extends StatefulWidget {
   const CreateAccountPage({Key? key}) : super(key: key);
@@ -17,30 +23,11 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
   TextEditingController emailController = TextEditingController();
   TextEditingController passController = TextEditingController();
   File? image;
-  ImagePicker picker = ImagePicker();
-
-  Future<void> getImageFromGallery() async {
-    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
-    if (pickedFile != null) {
-      setState(() {
-        image = File(pickedFile.path);
-      });
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        iconTheme: const IconThemeData(color: Colors.black),
-        title: const Text(
-          '新規登録',
-          style: TextStyle(color: Colors.black),
-        ),
-        centerTitle: true,
-      ),
+      appBar: WidgetUtils.createAppBar('新規登録'),
       body: SingleChildScrollView(
         child: Container(
           width: double.infinity,
@@ -50,8 +37,13 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
                 height: 30,
               ),
               GestureDetector(
-                onTap: () {
-                  getImageFromGallery();
+                onTap: () async {
+                  var result = await FunctionUtils.getImageFromGallery();
+                  if (result != null) {
+                    setState(() {
+                      image = File(result.path);
+                    });
+                  }
                 },
                 child: CircleAvatar(
                   foregroundImage: image == null ? null : FileImage(image!),
@@ -114,14 +106,31 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
                 height: 50,
               ),
               ElevatedButton(
-                  onPressed: () {
+                  onPressed: () async {
                     if (nameController.text.isNotEmpty &&
                         userIdController.text.isNotEmpty &&
                         selfIntroductionController.text.isNotEmpty &&
                         emailController.text.isNotEmpty &&
                         passController.text.isNotEmpty &&
                         image != null) {
-                      Navigator.pop(context);
+                      var result = await Authentication.singUp(
+                          email: emailController.text,
+                          pass: passController.text);
+                      if (result is UserCredential) {
+                        String imagePath = await FunctionUtils.uploadImage(
+                            result.user!.uid, image!);
+                        Account newAccount = Account(
+                          id: result.user!.uid,
+                          name: nameController.text,
+                          userId: userIdController.text,
+                          selfIntroduction: selfIntroductionController.text,
+                          imagePath: imagePath,
+                        );
+                        var _result = await UserFirestore.setUser(newAccount);
+                        if (_result == true) {
+                          Navigator.pop(context);
+                        }
+                      }
                     }
                   },
                   child: Text('アカウントを作成'))

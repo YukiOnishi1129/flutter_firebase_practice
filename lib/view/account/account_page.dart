@@ -1,8 +1,13 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_firevase_practice/utils/authentication.dart';
+import 'package:flutter_firevase_practice/utils/firestore/posts.dart';
+import 'package:flutter_firevase_practice/utils/firestore/users.dart';
 import 'package:intl/intl.dart';
 
 import '../../model/account.dart';
 import '../../model/post.dart';
+import 'edit_account_page.dart';
 
 class AccountPage extends StatefulWidget {
   const AccountPage({Key? key}) : super(key: key);
@@ -13,31 +18,7 @@ class AccountPage extends StatefulWidget {
 
 class _AccountPageState extends State<AccountPage> {
   //インスタンス作成
-  Account myAccount = Account(
-    id: '1',
-    name: 'Flutterラボ',
-    selfIntroduction: 'こんばんは',
-    userId: 'flutter_labo',
-    imagePath:
-        'https://yt3.ggpht.com/ngVd2-zv5o3pGUCfiVdZXCHhnq_g1Lo1Y8DbrmB9O8G7DG0IWUQJgsacqsI_LRvZE8JTsbQIuQ=s900-c-k-c0x00ffffff-no-rj',
-    createdTime: DateTime.now(),
-    updatedTime: DateTime.now(),
-  );
-
-  List<Post> postList = [
-    Post(
-      id: '1',
-      content: '初めまして',
-      postAccountId: '1',
-      createdTime: DateTime.now(),
-    ),
-    Post(
-      id: '2',
-      content: '初めまして2回目',
-      postAccountId: '1',
-      createdTime: DateTime.now(),
-    )
-  ];
+  Account? myAccount = Authentication.myAccount!;
 
   @override
   Widget build(BuildContext context) {
@@ -62,19 +43,19 @@ class _AccountPageState extends State<AccountPage> {
                               CircleAvatar(
                                 radius: 32,
                                 foregroundImage:
-                                    NetworkImage(myAccount.imagePath),
+                                    NetworkImage('${myAccount?.imagePath}'),
                               ),
                               const SizedBox(width: 10),
                               Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    myAccount.name,
+                                    '${myAccount?.name}',
                                     style: const TextStyle(
                                         fontSize: 20,
                                         fontWeight: FontWeight.bold),
                                   ),
-                                  Text('@${myAccount.userId}',
+                                  Text('@${myAccount?.userId}',
                                       style: TextStyle(color: Colors.grey)),
                                 ],
                               )
@@ -82,10 +63,22 @@ class _AccountPageState extends State<AccountPage> {
                           ),
                           const SizedBox(height: 15),
                           OutlinedButton(
-                              onPressed: () {}, child: const Text('編集'))
+                              onPressed: () async {
+                                var result = await Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) =>
+                                            EditAccountPage()));
+                                if (result == true) {
+                                  setState(() {
+                                    myAccount = Authentication.myAccount!;
+                                  });
+                                }
+                              },
+                              child: const Text('編集'))
                         ],
                       ),
-                      Text(myAccount.selfIntroduction)
+                      Text('${myAccount?.selfIntroduction}')
                     ],
                   ),
                 ),
@@ -106,70 +99,110 @@ class _AccountPageState extends State<AccountPage> {
                   ),
                 ),
                 Expanded(
-                    child: ListView.builder(
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: postList.length,
-                  itemBuilder: (context, index) {
-                    return Container(
-                      decoration: BoxDecoration(
-                          border: index == 0
-                              ? const Border(
-                                  top: BorderSide(color: Colors.grey, width: 0),
-                                  bottom:
-                                      BorderSide(color: Colors.grey, width: 0),
-                                )
-                              : const Border(
-                                  bottom: BorderSide(
-                                  color: Colors.grey,
-                                  width: 0,
-                                ))),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 15,
-                      ),
-                      child: Row(
-                        children: [
-                          CircleAvatar(
-                            radius: 22,
-                            foregroundImage: NetworkImage(myAccount.imagePath),
-                          ),
-                          Expanded(
-                            child: Container(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Row(
-                                        children: [
-                                          Text(
-                                            myAccount.name,
-                                            style: const TextStyle(
-                                                fontWeight: FontWeight.bold),
+                    child: StreamBuilder<QuerySnapshot>(
+                        stream: UserFirestore.users
+                            .doc(myAccount!.id)
+                            .collection('my_posts')
+                            .orderBy('created_time', descending: true)
+                            .snapshots(),
+                        builder: (context, snapshot) {
+                          if (snapshot.hasData) {
+                            List<String> myPostIds = List.generate(
+                                snapshot.data!.docs.length, (index) {
+                              return snapshot.data!.docs[index].id;
+                            });
+                            return FutureBuilder<List<Post>?>(
+                                future:
+                                    PostFirestore.getPostsFromIds(myPostIds),
+                                builder: (context, snapshot) {
+                                  if (snapshot.hasData) {
+                                    return ListView.builder(
+                                      physics:
+                                          const NeverScrollableScrollPhysics(),
+                                      itemCount: snapshot.data!.length,
+                                      itemBuilder: (context, index) {
+                                        Post post = snapshot.data![index];
+                                        return Container(
+                                          decoration: BoxDecoration(
+                                              border: index == 0
+                                                  ? const Border(
+                                                      top: BorderSide(
+                                                          color: Colors.grey,
+                                                          width: 0),
+                                                      bottom: BorderSide(
+                                                          color: Colors.grey,
+                                                          width: 0),
+                                                    )
+                                                  : const Border(
+                                                      bottom: BorderSide(
+                                                      color: Colors.grey,
+                                                      width: 0,
+                                                    ))),
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 10,
+                                            vertical: 15,
                                           ),
-                                          Text(
-                                            '@${myAccount.userId}',
-                                            style: const TextStyle(
-                                                color: Colors.grey),
+                                          child: Row(
+                                            children: [
+                                              CircleAvatar(
+                                                radius: 22,
+                                                foregroundImage: NetworkImage(
+                                                    '${myAccount?.imagePath}'),
+                                              ),
+                                              Expanded(
+                                                child: Container(
+                                                  child: Column(
+                                                    crossAxisAlignment:
+                                                        CrossAxisAlignment
+                                                            .start,
+                                                    children: [
+                                                      Row(
+                                                        mainAxisAlignment:
+                                                            MainAxisAlignment
+                                                                .spaceBetween,
+                                                        children: [
+                                                          Row(
+                                                            children: [
+                                                              Text(
+                                                                '${myAccount?.name}',
+                                                                style: const TextStyle(
+                                                                    fontWeight:
+                                                                        FontWeight
+                                                                            .bold),
+                                                              ),
+                                                              Text(
+                                                                '@${myAccount?.userId}',
+                                                                style: const TextStyle(
+                                                                    color: Colors
+                                                                        .grey),
+                                                              ),
+                                                            ],
+                                                          ),
+                                                          Text(DateFormat(
+                                                                  'M/d/yy')
+                                                              .format(post
+                                                                  .createdTime!
+                                                                  .toDate()))
+                                                        ],
+                                                      ),
+                                                      Text(post.content)
+                                                    ],
+                                                  ),
+                                                ),
+                                              )
+                                            ],
                                           ),
-                                        ],
-                                      ),
-                                      Text(DateFormat('M/d/yy')
-                                          .format(postList[index].createdTime!))
-                                    ],
-                                  ),
-                                  Text(postList[index].content)
-                                ],
-                              ),
-                            ),
-                          )
-                        ],
-                      ),
-                    );
-                  },
-                ))
+                                        );
+                                      },
+                                    );
+                                  } else {
+                                    return Container();
+                                  }
+                                });
+                          } else {
+                            return Container();
+                          }
+                        }))
               ],
             ),
           ),
